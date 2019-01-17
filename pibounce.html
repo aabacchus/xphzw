@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<style type='text/css'>
+		.slidecontainer {
+		  width: 100%;
+		}
+		.canvas {
+		  width: 100%;
+		  margin: auto;
+		  display: block;
+		  
+		}
+		.f {
+		  border: 1px solid black;
+		  width: 60%;
+		  margin-left: 10px;
+		}
+		</style>
+	</head>
+	<body>
+	  	<div class='f'>
+			<canvas id='c' class='canvas'>Error</canvas>
+		</div>
+		<button onclick='clearInterval(interval);'>Stop</button>
+		<div class='slidecontainer'>
+		</div>
+		<script>
+			var c = document.getElementById('c');
+			var ctx = c.getContext("2d");
+      
+      var numParticles = 2;
+      
+			var Particle = function (m, type){
+				this.x = type == 0 ? 100 : c.width-100;
+				this.y = 0.5*c.height;
+				this.v = {x: type == 0 ? 0 : -1};
+				this.rad= 20;
+				this.m = m;
+        this.color = 'saddlebrown';
+			}
+			
+			var particles = new Array(numParticles);
+			
+			particles[0] = new Particle(1, 0);
+			particles[1] = new Particle(100000, 1);
+			
+			var colls = 0;
+			
+			var fps = 20, interval;
+			window.onload = function() {
+				interval = setInterval(doAll, 1000/fps);
+			}
+      
+			function doAll(){
+				move();
+				draw();
+				console.log(colls);
+			}
+			function move(){
+				for(var i=0;i<numParticles;i++){
+					var p = particles[i];
+					p.x+=p.v.x;
+					wallCollision(p);
+					bounce(p,i);
+				}
+			}
+			var r;
+			function bounce(p,n){
+				for(var j=n+1;j<numParticles;j++){
+					var q = particles[j];
+					//if(p==q) continue;
+					
+					r = Math.abs(p.x-q.x);
+					if(r>p.rad+q.rad) continue;
+					//var prevR = distanceBn(p.x-p.v.x,p.y-p.v.y,q.x-q.v.x,q.y-q.v.y);
+					var prevR = Math.abs(p.x-p.v.x-q.x+q.v.x);
+					if(prevR<r) continue;
+					
+					colls++;
+					
+					var pux = p.v.x;
+					var puy = p.v.y;
+					p.v.x = pux*( (p.m-q.m) / (p.m+q.m) ) + (2*q.v.x*q.m/(p.m+q.m) );
+					q.v.x = q.v.x + (p.m/q.m)*(pux-p.v.x);
+				}
+			}
+			
+			function distanceBn(ax,ay,bx,by){
+			  return ((bx-ax)**2 + (by-ay)**2)**0.5;
+			}
+			
+			function wallCollision(p){
+				if(p.x<p.rad){
+					p.v.x*=-1;
+					p.x=p.rad;
+					colls++;
+				}
+			}
+
+			function draw(){
+				drawRect(0,0,c.width,c.height,'beige');
+				for(var i=0;i<numParticles;i++){
+					var p = particles[i];
+					drawCirc(p.x,p.y,p.rad,p.color);
+				}
+			}
+			function drawRect(x,y,w,h,color){
+				ctx.fillStyle = color;
+				ctx.fillRect(x,y,w,h);
+			}
+			function drawCirc(x,y,rad,color){
+				ctx.fillStyle = color;
+				ctx.beginPath();
+				ctx.arc(x,y,rad,0,Math.PI*2,true);
+				ctx.fill();
+			}
+		</script>
+	</body>
+</html>
